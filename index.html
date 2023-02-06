@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gamedev Canvas Workshop</title>
+    <style>
+        *{ padding: 0; 
+            margin: 0;}
+
+        canvas{background-color: #eee; 
+            display: block;
+            margin: 0 auto;}
+    </style>
+</head>
+<body>
+
+    <canvas id="myCanvas" width="480" height="320"></canvas>
+
+    <script>
+        const canvas =
+        document.getElementById("myCanvas");
+        /*2D rendering context : 캔버스에 그리는 사용도구*/
+        const ctx = canvas.getContext("2d");//변수저장
+
+        // ctx.beginPath();//그리기 시작
+        // //20, 40 : 좌상단 모서리부터의 좌표 / 50, 50 : 너비,높이
+        // ctx.rect(20, 40, 50, 50);//사각형
+        // ctx.fillStyle = "#FF0000";
+        // ctx.fill();//칠하기
+        // ctx.closePath();//그리기 끝
+
+        //ctx.beginPath();
+        //240, 160 : 원의 중심을 가리키는 x,y
+        //20 : 원의 반지름, 0: 원을 그릴 때 시작/끝이 되는 각도(라디안 값)
+        //false : 그리는 방향, 시계방향 (true는 반 시계방향)
+        // // ctx.arc(240, 160, 20, 0, Math.PI*2, false);
+        // ctx.fillStyle = "green";
+        // ctx.fill()
+        // ctx.closePath()
+
+        // ctx.beginPath()
+        // ctx.rect(160, 10, 100, 40);
+        // ctx.strokeStyle = "rgba(0, 0, 255, 0.5)";
+        // ctx.stroke();
+        // ctx.closePath();
+
+        /*공을 중앙 위치로 설정*/
+        let x = canvas.width/2;
+        let y = canvas.height-30;
+
+        /* 매 프레임 마다 해당 위치로 이동*/
+        let dx = 2;  // x좌표 : 좌(-) 우(+)  <->
+        let dy = -2; // y좌표 : 위(+) 아래(-)
+
+        let ballRadius = 10; //원반지름
+
+        /* paddle 정의 */
+        let paddleHeight = 65;
+        let paddleWidth = 75;
+        let paddleX = (canvas.width-paddleWidth)/2;
+
+        /*컨트롤*/ //눌려지지 않는 상태이므로 false
+        let rightPressed = false; //좌
+        let leftPressed = false; //우
+
+        document.addEventListener("keydown", keyDownHandler, false);
+        document.addEventListener("keyup", keyUpHandler, false);
+
+         /*키보드를 누르면*/ // keyCode - 눌려진 키에 대한 정보
+        function keyDownHandler(e) {
+            if(e.keyCode == 39) {
+                rightPressed = true;
+            }
+            else if(e.keyCode == 37) {
+                leftPressed = true;
+            }
+        }
+
+        /*키보드를 떼면*/
+        function keyUpHandler(e) {
+            if(e.keyCode == 39) {
+                rightPressed = false;
+            }
+            else if(e.keyCode == 37) {
+                leftPressed = false;
+            }
+        }
+
+        function darwBall() {
+            ctx.beginPath();
+            ctx.arc(x, y, ballRadius, 0, Math.PI*2);
+            ctx.fillStyle = "#0095DD"
+            ctx.fill();
+            ctx.closePath();
+        }
+
+        function drawPaddle() {
+            const img = new Image();
+            // 이미지 소스 설정
+            img.src = './image/turtle_1.png';
+             // 이미지 로드이벤트- 콜백함수 등록
+            img.onload = function(){
+            // 이미지 그리기
+            ctx.drawImage(img, paddleX, canvas.height-paddleHeight, paddleWidth, paddleHeight);
+            }
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height); //이전 프레임 제거
+            darwBall();
+            drawPaddle();
+
+            /*공 튕기기*/
+            //공의 원점과 벽 사이의 거리가 공의 반지름과 같아졌을 때 움직여야함.
+            //좌 모서리 or 우 모서리
+            if(x + dx > canvas.width-ballRadius || x + dx < ballRadius) {
+                dx = -dx;
+            }
+            if(y + dy < ballRadius) {//상단 모서리
+                dy = -dy;
+            }
+            else if(y + dy > canvas.height-ballRadius) {//하단모서리
+                if(x > paddleX && x < paddleX + paddleWeight){//하단에 닿을 때 패들이 있으면 팅긴다
+                    dy = -dy;
+                }
+                else {
+                    alert("GAME OVER!!");
+                    document.location.reload();//게임 다시 시작
+                }
+            }
+            /*이동 로직*/
+            //paddleX의 위치가 캔버스 왼쪽끝 0과 오른쪽 canvas.width-paddleWidth에서 움직이게함.
+            if(rightPressed && paddleX < canvas.width-paddleWidth) {
+                paddleX += 5;
+            }
+            else if(leftPressed && paddleX > 0) {
+                paddleX -= 5;
+            }
+
+            x += dx;
+            y += dy;
+        }
+        
+        //10초마다 지속적으로 호출 (속도)
+        setInterval(draw, 10);
+    </script>
+    
+</body>
+</html>
